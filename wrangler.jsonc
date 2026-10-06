@@ -17,7 +17,7 @@
   },
   "vars": {
     "APP_ENV": "staging",
-    "AUTH_BASE_URL": "https://silverassist-staging.allgreatthings.app"
+    "AUTH_BASE_URL": "https://silverassist.allgreatthings.app"
   },
   "d1_databases": [
     {

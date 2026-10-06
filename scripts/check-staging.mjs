@@ -9,7 +9,7 @@ assert.equal(source.compatibility_date, '2026-10-06')
 assert.equal(source.workers_dev, false)
 assert.equal(source.preview_urls, false)
 assert.equal(source.vars.APP_ENV, 'staging')
-assert.equal(source.vars.AUTH_BASE_URL, 'https://silverassist-staging.allgreatthings.app')
+assert.equal(source.vars.AUTH_BASE_URL, 'https://silverassist.allgreatthings.app')
 for (const key of ['env', 'routes', 'r2_buckets', 'kv_namespaces']) assert.equal(key in source, false)
 for (const key of ['AUTH_SECRET', 'AUTH_ALLOWED_EMAILS']) assert.equal(key in source.vars, false)
 assert.deepEqual(source.d1_databases, [{
