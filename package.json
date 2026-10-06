@@ -1,0 +1,48 @@
+{
+  "name": "silverassist-portal",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host localhost --port 5173 --strictPort",
+    "build": "npm run typecheck && vite build",
+    "typecheck": "tsc -b",
+    "check": "npm run build && node scripts/check-staging.mjs",
+    "setup:local": "node scripts/setup-local.mjs",
+    "db:migrate:local": "node scripts/migrate-local.mjs",
+    "auth:generate": "auth generate --config scripts/auth-schema.config.ts --output worker/db/auth-schema.ts --yes",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "1.7.7",
+    "@tiptap/pm": "3.31.4",
+    "@tiptap/react": "3.31.4",
+    "@tiptap/starter-kit": "3.31.4",
+    "better-auth": "1.7.7",
+    "drizzle-orm": "0.45.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.62.5",
+    "@cloudflare/workers-types": "5.20261005.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.19.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "auth": "1.7.7",
+    "drizzle-kit": "0.31.11",
+    "typescript": "6.0.3",
+    "vite": "8.3.2",
+    "wrangler": "4.147.0"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.0"
+    }
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

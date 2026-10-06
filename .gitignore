@@ -1,0 +1,53 @@
+# Dependencies and generated builds
+node_modules/
+dist/
+build/
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+
+# Private configuration; placeholders may be tracked
+.env*
+!.env.example
+.dev.vars*
+!.dev.vars.example
+.wrangler/
+.cloudflare/
+.local/
+.data/
+.state/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Client files, mail tokens, OAuth state, and backups
+uploads/
+client-files/
+exports/
+backups/
+outbox/
+mail-outbox/
+oauth-tokens/
+secrets/
+*.log
+
+# Operating system files
+.DS_Store
+
+# Public source checkout: never publish local/advisory material
+.env*
+.dev.vars*
+AGENTS.private.md
+CONTEXT.md
+RUNBOOK.md
+STATUS.md
+START-HERE.md
+STYLE-GUIDE.md
+PACKAGE-MANIFEST.json
+docs/
+style-reference/
+seed/

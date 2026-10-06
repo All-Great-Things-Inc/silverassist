@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "silverassist-advisory-staging",
+  "account_id": "e17f444f4a1bb3af2c1cb0f6d26441bc",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-06",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+  "vars": {
+    "APP_ENV": "staging",
+    "AUTH_BASE_URL": "https://silverassist-staging.allgreatthings.app"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "silverassist-advisory-staging",
+      "database_id": "ceaebbde-035f-4ab5-9168-8502b29a5ce8",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

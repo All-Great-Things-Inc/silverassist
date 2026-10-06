@@ -1,0 +1,454 @@
+/*
+ * InSync Portal Design System — v0.1.2
+ *
+ * This is the visual source of truth for the prototype and future portal.
+ * Page styles belong in styles.css; colors, typography, controls, focus
+ * behavior, and icon rules belong here.
+ */
+
+:root {
+  /* Typography — local/system only until a licensed web font is approved. */
+  --font-sans: "Avenir Next", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Avenir Next", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Brand and semantic colors. */
+  --color-ink: #172a39;
+  --color-muted: #71818d;
+  --color-subtle: #8a99a2;
+  --color-line: #e5eaed;
+  --color-surface: #ffffff;
+  --color-canvas: #f7f9fa;
+  --color-brand: #0e8f83;
+  --color-brand-strong: #086e68;
+  --color-brand-soft: #e6f5f2;
+  --color-warning: #d97706;
+  --color-warning-soft: #fef3c7;
+  --color-accent: #715bd4;
+  --color-accent-soft: #f1eefa;
+  --color-danger: #b94d50;
+  --color-danger-soft: #fff0f0;
+
+  /* Compatibility aliases used by existing page layouts. */
+  --ink: var(--color-ink);
+  --muted: var(--color-muted);
+  --line: var(--color-line);
+  --surface: var(--color-surface);
+  --canvas: var(--color-canvas);
+  --teal: var(--color-brand);
+  --teal-dark: var(--color-brand-strong);
+  --teal-soft: var(--color-brand-soft);
+  --amber: var(--color-warning);
+  --amber-soft: var(--color-warning-soft);
+  --purple: var(--color-accent);
+
+  /* Layout and elevation. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 11px;
+  --shadow-card: 0 8px 26px rgba(22, 47, 58, 0.06);
+  --shadow-focus: 0 0 0 3px rgba(14, 143, 131, 0.18);
+  --shadow: var(--shadow-card);
+
+  /* Icon system. */
+  --icon-size: 17px;
+  --icon-stroke: 1.8;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  font: 14px/1.45 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select { font: inherit; }
+
+button { cursor: pointer; }
+
+a { color: inherit; text-decoration: none; }
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Shared button contract. */
+.primary-button,
+.outline-button,
+.small-button,
+.text-button {
+  min-height: 36px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.primary-button {
+  border: 1px solid var(--color-brand);
+  padding: 9px 15px;
+  color: #fff;
+  background: var(--color-brand);
+  box-shadow: 0 4px 10px rgba(14, 143, 131, 0.18);
+}
+
+.primary-button:hover { background: var(--color-brand-strong); border-color: var(--color-brand-strong); }
+
+.outline-button,
+.small-button {
+  border: 1px solid #cedadd;
+  color: #4e6570;
+  background: var(--color-surface);
+}
+
+.outline-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 15px;
+  text-decoration: none;
+}
+
+.outline-button:hover,
+.small-button:hover { border-color: #aebfc4; background: #f7faf9; }
+
+.small-button { min-height: 30px; padding: 5px 10px; font-size: 11px; }
+
+.text-button {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  color: var(--color-brand-strong);
+  background: transparent;
+}
+
+/* Client-facing context tooltips. */
+.tooltip-card { position: relative; }
+.info-tooltip {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  margin-left: 7px;
+  border: 1px solid #aab9bd;
+  border-radius: 50%;
+  color: #7d8d94;
+  background: transparent;
+  cursor: help;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: 1px;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+.info-tooltip:hover,
+.info-tooltip:focus-visible,
+.info-tooltip.is-open { border-color: #7d8d94; color: var(--color-ink); background: transparent; }
+.info-tooltip:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+.info-glyph { display: grid; place-items: center; width: 100%; height: 100%; font-family: Arial, sans-serif; line-height: 1; transform: translateY(-.25px); }
+.info-tooltip > .tooltip-bubble {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 9px);
+  left: 50%;
+  width: min(250px, calc(100vw - 32px));
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #fff;
+  background: #17353b;
+  box-shadow: 0 8px 22px rgba(23, 53, 59, .2);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -3px);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+}
+.info-tooltip > .tooltip-bubble::before {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #17353b;
+  content: '';
+  transform: translateX(-50%) rotate(45deg);
+}
+.info-tooltip:hover > .tooltip-bubble,
+.info-tooltip:focus-visible > .tooltip-bubble,
+.info-tooltip.is-open > .tooltip-bubble {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.tooltip-card > .info-tooltip { position: absolute; top: 14px; right: 14px; margin: 0; }
+.nav-item > .info-tooltip { flex: 0 0 auto; margin-left: auto; }
+
+/* Shared input contract. */
+input,
+textarea,
+select {
+  border: 1px solid #d4dfe1;
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  background: var(--color-surface);
+}
+
+input:focus,
+textarea:focus,
+select:focus { border-color: var(--color-brand); }
+
+/*
+ * Icon contract:
+ * - All navigation and product-action icons are inline SVGs in a 24 × 24 viewBox.
+ * - They use currentColor, no fills, a rounded 1.8px stroke, and a 17px rendered size.
+ * - Emoji and typographic glyphs are not product icons. The club notification mark is
+ *   the single intentional exception requested for the portal header.
+ */
+.nav-icon,
+.ui-icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  display: inline-grid;
+  flex: 0 0 var(--icon-size);
+  place-items: center;
+}
+
+.nav-icon svg,
+.ui-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Warning card contract: use for client-directed exceptions that need a visible guardrail. */
+.access-risk-banner {
+  margin-top: 12px;
+  padding: 12px 13px;
+  border: 1px solid #fbbf24;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(100deg, #fff9dc, var(--color-warning-soft));
+}
+
+.risk-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #9a5b00;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
+.risk-banner-title > span {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-surface);
+  background: #f59e0b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.access-risk-banner p {
+  color: #75510c;
+  font-size: 10px;
+  line-height: 1.5;
+  margin: 7px 0 0;
+}
+
+.access-risk-banner p + p { margin-top: 5px; }
+
+.access-risk-banner .risk-email-route {
+  padding-top: 9px;
+  border-top: 1px solid #fcd34d;
+  color: #6e4a07;
+}
+
+/*
+ * Data dashboard contract
+ *
+ * Use these primitives for operational/admin reporting. They intentionally use
+ * the portal's existing teal, purple, amber, line, and card rules. These
+ * components must not introduce a second analytics palette from another
+ * project. Charts and ledgers are InSync UI, just like forms and navigation.
+ * Page-specific positioning belongs in styles.css; never recreate the visual
+ * treatment of a chart or ledger in a page stylesheet.
+ */
+:root {
+  --data-ink: var(--color-ink);
+  --data-track: #e7eeed;
+  --data-card-line: var(--color-line);
+  --data-brand: var(--color-brand);
+  --data-brand-strong: var(--color-brand-strong);
+  --data-success: var(--color-brand);
+  --data-accent: var(--color-accent);
+  --data-alert: var(--color-warning);
+  --data-heat-0: #edf1f1;
+  --data-heat-1: #d5efeb;
+  --data-heat-2: #a6dfd1;
+  --data-heat-3: #54b999;
+  --data-heat-4: var(--color-brand-strong);
+}
+
+.ds-data-card,
+.ds-metric-card {
+  border: 1px solid var(--data-card-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.ds-metric-card {
+  min-height: 92px;
+  padding: 19px;
+}
+
+/* Metric cards inherit the neutral portal card treatment. Data color belongs
+   in the value, status, or chart—not as a coloured card edge or surface. */
+
+.ds-data-rail,
+.ds-data-bar {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--data-track);
+}
+
+.ds-data-rail > i,
+.ds-data-bar > i {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--data-brand);
+  transition: width 180ms ease;
+}
+
+.ds-data-rail > b {
+  position: absolute;
+  z-index: 1;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--data-accent);
+  transform: translateX(-1px);
+  transition: left 180ms ease;
+}
+
+.ds-data-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--data-brand-strong);
+  background: var(--color-brand-soft);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ds-data-chip[data-tone="warning"] { color: var(--color-warning); background: var(--color-warning-soft); }
+
+.ds-data-alert {
+  display: flex;
+  gap: var(--space-2);
+  border: 1px solid #f2dfbf;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  color: #7f6b4d;
+  background: #fffaf1;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.ds-data-alert strong { color: var(--color-warning); }
+
+.ds-data-ledger {
+  overflow: hidden;
+  border: 1px solid var(--data-card-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.ds-data-ledger-heading {
+  color: var(--color-subtle);
+  border-bottom: 1px solid var(--data-card-line);
+  background: var(--color-canvas);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.ds-data-heatmap-cell {
+  display: block;
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  background: var(--data-heat-0);
+}
+
+.ds-data-heatmap-cell[data-level="1"] { background: var(--data-heat-1); }
+.ds-data-heatmap-cell[data-level="2"] { background: var(--data-heat-2); }
+.ds-data-heatmap-cell[data-level="3"] { background: var(--data-heat-3); }
+.ds-data-heatmap-cell[data-level="4"] { background: var(--data-heat-4); }
+
+.risk-email-route strong { color: #9a5b00; }
+
+.risk-email-route a {
+  color: #8f5000;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* SilverAssist palette and readable labels. Original snapshot preserved in style-reference. */
+:root {
+  --color-brand: #112E81;
+  --color-brand-strong: #112E81;
+  --color-brand-soft: #AACCD6;
+  --color-accent: #4647AE;
+  --color-accent-soft: #efeff9;
+  --color-chart-blue: #4382DF;
+  --color-muted: #566773;
+  --shadow-focus: 0 0 0 3px #AACCD6;
+  --data-track: #e5eaed;
+  --data-heat-0: #f7f9fa;
+  --data-heat-1: #AACCD6;
+  --data-heat-2: #4382DF;
+  --data-heat-3: #4647AE;
+  --data-heat-4: #112E81;
+}
+.primary-button { box-shadow: 0 4px 10px rgba(17,46,129,.18); font-size: 14px; }
+.primary-button:hover { box-shadow: inset 0 0 0 1px #fff; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid #112E81; outline-offset: 2px; }
