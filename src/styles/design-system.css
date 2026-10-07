@@ -452,3 +452,5 @@ select:focus { border-color: var(--color-brand); }
 .primary-button { box-shadow: 0 4px 10px rgba(17,46,129,.18); font-size: 14px; }
 .primary-button:hover { box-shadow: inset 0 0 0 1px #fff; }
 button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid #112E81; outline-offset: 2px; }
+
+:root { --time-series-0: var(--color-chart-blue); --time-series-1: var(--color-accent); }

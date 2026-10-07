@@ -31,7 +31,7 @@ export function Dashboard({ data, name, busy, message, onAccount, onSignOut, vie
             {!workstreams.length&&<li className="nav-empty">No workstreams in this view.</li>}
           </ul>
         </div>
-        {['notes','permissions'].map(item=><button key={item} className={`nav-item ${view===item?'active':''}`} aria-current={view===item?'page':undefined} onClick={()=>onNavigate?.(item)}>{item==='notes'?'Notes':'Workspace access'}</button>)}
+        {['notes','time','time-settings','permissions'].map(item=><button key={item} className={`nav-item ${view===item?'active':''}`} aria-current={view===item?'page':undefined} onClick={()=>onNavigate?.(item)}>{item==='notes'?'Notes':item==='time'?'Time':item==='time-settings'?'Time settings':'Workspace access'}</button>)}
         <button className="nav-item" onClick={onAccount}>Your account</button>
       </nav>
       <div className="sidebar-footer"><span className="scope-tag">Private workspace</span><p>Signed in as <strong>{name}</strong></p>
