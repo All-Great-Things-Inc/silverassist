@@ -15,5 +15,5 @@ async function compile(dir) {
  }
 }
 await compile('worker/time');await compile('shared');
-for(const p of ['worker/policy.ts']) {const target=out+'/'+p.replace(/\.ts$/,'.js');await mkdir(dirname(target),{recursive:true});await writeFile(target,ts.transpileModule(await readFile(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2023,module:ts.ModuleKind.ESNext}}).outputText)}
+for(const p of ['worker/policy.ts']) {const target=out+'/'+p.replace(/\.ts$/,'.js');await mkdir(dirname(target),{recursive:true});await writeFile(target,ts.transpileModule(await readFile(p,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2023,module:ts.ModuleKind.ESNext}}).outputText.replace(/(from\s+['"])(\.[^'"]+)(['"])/g,'$1$2.js$3'))}
 const result=spawnSync(process.execPath,['--test','tests/time.test.mjs'],{stdio:'inherit'});process.exitCode=result.status

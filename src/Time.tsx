@@ -1,3 +1,4 @@
+import { TimeBilling } from './TimeBilling'
 import { useCallback, useEffect, useState } from 'react'
 import type { Hours, TimeSettings } from '../shared/time'
 import { addDays, monthlyCap, pace, effective } from '../worker/time/logic'
@@ -25,7 +26,7 @@ export function Time({workspaceId}:{workspaceId:string}) {
  useEffect(()=>{void load();return ()=>{}},[load])
  async function connect() {setBusy(true);setError('');try{const result=await timeRequest(base,'connect','POST');location.assign(result.url)}catch(e){setError((e as Error).message);setBusy(false)}}
  async function disconnect() {setBusy(true);setError('');try{await timeRequest(base,'disconnect','POST');setConnection(null);setData(null);setNotice('Calendar disconnected.');}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
- const money=(n:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:settings?.currency??'USD'}).format(n)
+ const money=(n:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:settings!.currency}).format(n)
  const value=(range:'week'|'month'|'total')=>settings&&data?settings.buckets.reduce((sum,b)=>sum+Object.entries(data.dailyByWorkspace[b.key]??{}).filter(([d])=>range==='total'||d>=(range==='week'?data.weekStart:data.monthStart)).reduce((v,[d,h])=>v+h*(effective(b.rates,d)??0),0),0):0
  return <div className="time-page">
   <div className="time-heading"><div><h1>Time</h1><p className="lede">Calendar-recorded effort · owner only</p></div><div className="time-actions">
@@ -54,6 +55,7 @@ export function Time({workspaceId}:{workspaceId:string}) {
     {data.attention.length>=100&&<p>Showing the first 100 items.</p>}
    </section>
   </>}
+  {settings&&<TimeBilling base={base} data={data} settings={settings} calendarError={!!error} onChange={()=>void load()}/>}
  </div>
 }
 function MonthBars({data,settings}:{data:Hours;settings:TimeSettings}) {

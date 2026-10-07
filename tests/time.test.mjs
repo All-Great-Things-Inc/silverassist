@@ -5,6 +5,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { initialSettings, validateSettings } from '../.local/time-tests/worker/time/settings.js'
 import { classify, splitDays, calculate, pace, block } from '../.local/time-tests/worker/time/logic.js'
 import { encrypt, decrypt, fetchEvents, connect, callback } from '../.local/time-tests/worker/time/calendar.js'
+import { invoiceSnapshot, ledger } from '../.local/time-tests/worker/time/invoice-logic.js'
 import { timeRoutes } from '../.local/time-tests/worker/time/routes.js'
 const settings=structuredClone(initialSettings), epoch=s=>Date.parse(s)
 const event=(start,end,extra={})=>({id:crypto.randomUUID(),summary:'SilverAssist Strategy',start:{dateTime:start},end:{dateTime:end},...extra})
@@ -93,4 +94,36 @@ test('provider failure returns 502/no-store and never writes a zero cache; succe
   assert.equal(r.status,502);assert.equal(r.headers.get('Cache-Control'),'no-store');assert.equal((await r.json()).total,undefined)
   assert.equal(sql.prepare('SELECT payload_json FROM time_hours_cache').get().payload_json,previous)
  }finally{globalThis.fetch=original}
+})
+
+test('monthly invoice totals, immutable snapshots, numbering, paid/void ledger and audit',async()=>{
+ const {env,sql}=fixture(),original=globalThis.fetch
+ const s=structuredClone(settings);s.billFrom='Test Advisor';s.billTo='Test Client';s.buckets[0].startDate='2026-09-01';s.buckets[0].rates[0].from='2026-09-01';s.buckets[0].caps[0].from='2026-09-01'
+ sql.prepare('INSERT INTO time_settings VALUES (?,?,1,?)').run('ws',JSON.stringify(s),'now')
+ sql.prepare("INSERT INTO time_connections VALUES ('ws','connection','owner','owner@example.test',?,'connected','now')").run(await encrypt('synthetic-refresh',env,'ws:owner'))
+ const call=async(path,method='GET',body)=>timeRoutes(new Request(env.AUTH_BASE_URL+'/api/workspaces/ws/time/'+path,{method,headers:{Origin:env.AUTH_BASE_URL,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)}),env,{id:'owner',emailVerified:true},'session')
+ try {
+  globalThis.fetch=async(url)=>String(url).includes('/token')?Response.json({access_token:'synthetic-access'}):Response.json({items:[event('2026-09-30T23:00:00-05:00','2026-10-01T02:00:00-05:00')]})
+  let response=await call('invoices','POST',{bucket:'silverassist',month:'2026-09'});assert.equal(response.status,201,JSON.stringify(await response.clone().json()))
+  const {invoice}=await response.json();assert.equal(invoice.snapshot.hours,1);assert.equal(invoice.snapshot.totalMinor,30000);assert.equal(invoice.number,'INV-001')
+  const settingsBefore=sql.prepare('SELECT config_json FROM time_settings').get().config_json
+  response=await call('invoices','POST',{bucket:'silverassist',month:'2026-09'});assert.equal(response.status,409);assert.equal(sql.prepare('SELECT config_json FROM time_settings').get().config_json,settingsBefore)
+  response=await call('invoices/'+invoice.id,'PATCH',{version:1,status:'paid'});assert.equal(response.status,200);const paid=(await response.json()).invoice;assert.equal(paid.status,'paid')
+  assert.equal(sql.prepare('SELECT count(*) AS n FROM time_invoice_audit').get().n,2)
+  response=await call('invoices/'+invoice.id,'PATCH',{version:1,status:'invoiced'});assert.equal(response.status,409)
+  s.billFrom='Changed';s.buckets[0].rates[0].value=999;sql.prepare('UPDATE time_settings SET config_json=?').run(JSON.stringify(s))
+  assert.equal((await (await call('invoices/'+invoice.id)).json()).invoice.snapshot.billFrom,'Test Advisor')
+  assert.throws(()=>sql.prepare('UPDATE time_invoices SET snapshot_json=?').run('{}'))
+  response=await call('invoices/'+invoice.id,'DELETE',{version:2,reason:'Synthetic correction'});assert.equal(response.status,200);assert.equal((await response.json()).invoice.status,'void')
+  assert.equal(sql.prepare('SELECT count(*) AS n FROM time_invoice_audit').get().n,3)
+  response=await call('invoices','POST',{bucket:'silverassist',month:'2026-10'});assert.equal(response.status,400)
+ }finally{globalThis.fetch=original}
+})
+
+test('invoice totals aggregate time before rounding, preserve rate history and separate extras',()=>{
+ const s=structuredClone(settings);s.taxPercent=10;s.buckets[0].rates.push({from:'2026-10-06',value:400})
+ const data={dailyByWorkspace:{silverassist:{'2026-10-05':0.5,'2026-10-06':1}},generatedAt:'test'}
+ const snapshot=invoiceSnapshot(data,s,'silverassist','2026-10',[{description:'Additional service',hours:0.25,rate:100}])
+ assert.equal(snapshot.hours,1.5);assert.equal(snapshot.subtotalMinor,57500);assert.equal(snapshot.taxMinor,5750);assert.equal(snapshot.totalMinor,63250);assert.equal(snapshot.lines.at(-1).tracked,false)
+ assert.deepEqual(ledger([{status:'invoiced',snapshot},{status:'paid',snapshot},{status:'void',snapshot}]),{USD:{invoiced:1265,paid:632.5,outstanding:632.5}})
 })

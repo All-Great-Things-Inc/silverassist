@@ -1,6 +1,5 @@
-export class PortalError extends Error {
-  constructor(public status: number, message: string) { super(message) }
-}
+export { PortalError } from '../shared/errors'
+import { PortalError } from '../shared/errors'
 export type Member = { workspace_id: string; user_id: string; role: 'owner' | 'editor' | 'viewer' }
 export async function membership(db: D1Database, workspaceId: string, userId: string) {
   const member = await db.prepare(`SELECT m.workspace_id,m.user_id,m.role FROM memberships m

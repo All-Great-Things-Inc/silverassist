@@ -22,6 +22,7 @@ try {
   else if(path.endsWith('/workstreams'))body={workstreams:[]}
   else if(path.endsWith('/time/settings'))body={settings:initialSettings,version:0}
   else if(path.endsWith('/time/calendar'))body={connection:{account_email:'owner@example.test',status:'connected'},configured:true}
+  else if(path.endsWith('/time/invoices'))body={invoices:[]}
   else if(path.endsWith('/time/hours')){body=failure?{error:'Synthetic provider failure'}:data;status=failure?502:200}
   await route.fulfill({status,json:body})
  })

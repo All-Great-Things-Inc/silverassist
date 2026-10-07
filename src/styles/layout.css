@@ -148,3 +148,8 @@ legend { font-weight: 600; padding: 0 6px; }
 .time-page table { border-collapse: collapse; width: 100%; text-align: left; }
 .time-page th, .time-page td { padding: 10px; border-bottom: 1px solid var(--color-line); }
 @media (max-width:700px) { .time-rollups { grid-template-columns: 1fr; } .time-heading { align-items: start; } }
+
+.time-invoice-form { display: flex; align-items: end; flex-wrap: wrap; gap: var(--space-4); margin: var(--space-5) 0; }
+.time-invoice-form label { display: grid; gap: var(--space-2); }
+
+.time-overdue { color: var(--color-danger); font-weight: 700; }

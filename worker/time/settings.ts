@@ -4,7 +4,7 @@ import { PortalError } from '../policy'
 export const initialSettings: TimeSettings = {
  timezone: 'America/Chicago', weekStart: 'sunday', expectedEmail: 'jennifer@allgreatthings.io', calendarId: 'primary',
  buckets: [{ key: 'silverassist', label: 'SilverAssist', keyword: 'SilverAssist', match: 'prefix', startDate: '2026-10-05', rates: [{ from: '2026-10-05', value: 300 }], caps: [{ from: '2026-10-05', value: null }] }],
- blockHours: null, termsDays: 30, terms: 'Payment due within 30 days of issue.', currency: 'USD',
+ blockHours: null, termsDays: 30, terms: 'Payment due within 30 days of issue.', taxPercent: 0, currency: 'USD',
  billFrom: '', billTo: '', paymentInstructions: '', description: 'Advisory services',
  invoicePrefix: 'INV-', invoicePadding: 3, nextNumber: 1, filenamePattern: 'Invoice-{number}-{client}.pdf',
  normalPaymentDays: 30, prepaidEnabled: false, overlapPolicy: 'flag', countFree: false, countOutOfOffice: false, countTentative: true,
@@ -45,6 +45,7 @@ export function validateSettings(raw: unknown): TimeSettings {
    if (values[0].from>b.startDate) throw new PortalError(400,'Rate/cap history must cover the engagement start.')
   }
  }
+ if (!Number.isFinite(s.taxPercent)||s.taxPercent<0||s.taxPercent>100)throw new PortalError(400,'Invalid tax percentage.')
  if (!s.filenamePattern.includes('{number}') || !s.filenamePattern.endsWith('.pdf')) throw new PortalError(400,'PDF filename must contain {number} and end in .pdf.')
  return s
 }
