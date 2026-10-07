@@ -128,9 +128,13 @@ export default function App() {
         await post('sign-in/email', { email, password })
         setPassword(''); await refresh()
       } else if (mode === 'signup') {
-        await post('sign-up/email', { name: displayName, email, password, callbackURL: `${location.origin}/?verified=1` })
-        setPassword(''); setConfirm(''); setMailKind('verification')
-        setMessage('Check your verification email before signing in. Creating an account does not grant access to an engagement.')
+        const created = await post('sign-up/email', { name: displayName, email, password, callbackURL: `${location.origin}/?verified=1` })
+        setPassword(''); setConfirm('')
+        if (created?.user?.emailVerified) await refresh()
+        else {
+          setMailKind('verification')
+          setMessage('Check your verification email before signing in. Creating an account does not grant access to an engagement.')
+        }
       } else if (mode === 'forgot') {
         await post('request-password-reset', { email, redirectTo: `${location.origin}/reset-password` })
         setMailKind('reset'); setMessage('If an account exists for that email, a password reset link has been sent.')

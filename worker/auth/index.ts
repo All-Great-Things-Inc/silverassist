@@ -71,11 +71,27 @@ export function createAuth(env: Env, request: Request, ctx: ExecutionContext) {
       }),
     },
     databaseHooks: {
-      user: { create: { before: async user => {
-        if (!emailAllowed(user.email, env.AUTH_ALLOWED_EMAILS)) {
-          throw new APIError('FORBIDDEN', { message: accessDeniedMessage })
-        }
-      } } },
+      user: { create: {
+        before: async user => {
+          if (!emailAllowed(user.email, env.AUTH_ALLOWED_EMAILS)) {
+            throw new APIError('FORBIDDEN', { message: accessDeniedMessage })
+          }
+          // Hosted mail is not configured. The allowlist is the access gate.
+          if (env.APP_ENV !== 'local') return { data: { ...user, emailVerified: true } }
+        },
+        after: async user => {
+          if (env.APP_ENV === 'local') return
+          const existing = await env.DB.prepare('SELECT id FROM workspaces LIMIT 1').first()
+          if (existing) return
+          const workspaceId = crypto.randomUUID()
+          await env.DB.batch([
+            env.DB.prepare('INSERT INTO workspaces (id, slug, name, is_demo) VALUES (?, ?, ?, 0)')
+              .bind(workspaceId, 'silverassist', 'SilverAssist Advisory'),
+            env.DB.prepare(`INSERT INTO memberships (id, workspace_id, user_id, role, status) VALUES (?, ?, ?, 'owner', 'active')`)
+              .bind(crypto.randomUUID(), workspaceId, user.id),
+          ])
+        },
+      } },
       session: { create: { before: async session => {
         const user = await env.DB.prepare('SELECT email FROM user WHERE id=?')
           .bind(session.userId).first<{ email: string }>()
@@ -91,13 +107,13 @@ export function createAuth(env: Env, request: Request, ctx: ExecutionContext) {
       enabled: true,
       minPasswordLength: 8,
       maxPasswordLength: 128,
-      requireEmailVerification: true,
+      requireEmailVerification: env.APP_ENV === 'local',
       revokeSessionsOnPasswordReset: true,
       resetPasswordTokenExpiresIn: 3600,
       sendResetPassword: async ({ user, url }) => saveLocalMail('reset', user.email, url),
     },
     emailVerification: {
-      sendOnSignUp: true,
+      sendOnSignUp: env.APP_ENV === 'local',
       sendVerificationEmail: async ({ user, url }) => saveLocalMail('verification', user.email, url),
     },
     session: { expiresIn: 60 * 60 * 24 * 7, cookieCache: { enabled: false } },
