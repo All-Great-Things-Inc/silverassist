@@ -14,7 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "test:time": "node tests/run-time.mjs",
     "test:time-runtime": "node tests/time-runtime.mjs",
-    "test:time-ui": "node tests/time-ui.mjs"
+    "test:time-ui": "node tests/time-ui.mjs",
+    "test:viewer-ui": "node tests/viewer-navigation.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",

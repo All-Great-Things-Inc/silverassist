@@ -86,7 +86,14 @@ export default function App() {
         if (!['/account', '/reset-password','/workstreams','/notes','/permissions','/time','/time-settings','/accept-invitation'].includes(location.pathname)) {
           history.replaceState({}, '', '/dashboard'); setAccountView(false);setView('dashboard')
         }
-      } else if (response.status === 403) {setDashboard(null);if(spaces.workspaces?.length&&location.pathname==='/'){history.replaceState({},'','/workstreams');setView('workstreams');setAccountView(false)}}
+      } else if (response.status === 403) {
+        setDashboard(null)
+        const sharedWorkspace=spaces.workspaces?.[0]
+        await refreshWorkstreamNavigation(sharedWorkspace?.id)
+        if(sharedWorkspace&&sharedWorkspace.role!=='owner'&&!['/account','/reset-password','/workstreams','/notes','/accept-invitation'].includes(location.pathname)){
+          history.replaceState({},'','/workstreams');setView('workstreams');setAccountView(false);setSelectedWorkstreamId(null)
+        }
+      }
       else throw new Error('Unable to load your workspace. Please refresh.')
       if (import.meta.env.DEV) {
         const result = await fetch('/api/dev/records').then(response => response.json())
@@ -198,12 +205,12 @@ export default function App() {
   </>
   if (loading) return <main className="foundation-page"><p role="status">Opening your workspace…</p></main>
   if(name&&acceptingInvite) return <main className="foundation-page"><h1>Accept workspace invitation</h1><p>Signed in as {email}. Accepting grants the role chosen by the workspace owner.</p><button className="primary-button" disabled={busy} onClick={async()=>{setBusy(true);try{const r=await fetch('/api/invitations/accept',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});const d=await r.json();if(!r.ok)throw new Error(d.error);setAcceptingInvite(false);history.replaceState({},'','/workstreams');setView('workstreams');await refresh()}catch(e){setMessage((e as Error).message)}finally{setBusy(false)}}}>Accept invitation</button><button className="outline-button" disabled={busy} onClick={signOut}>Sign out</button><p role="status">{message}</p></main>
-  if(name&&workspace&&workspace.role!=='owner'&&!accountView) return <main className="foundation-page"><span className="scope-tag">Shared workspace</span><h1>{workspace.name}</h1><p>Signed in as {name}</p><button className="outline-button" disabled={busy} onClick={signOut}>Sign out</button><button className="text-button" onClick={()=>{history.pushState({},'','/account');setAccountView(true)}}>Your account</button><nav className="portal-actions"><button className="outline-button" onClick={()=>{if(allowNavigation()){setView('workstreams');history.pushState({},'','/workstreams')}}}>Workstreams</button><button className="outline-button" onClick={()=>{if(allowNavigation()){setView('notes');history.pushState({},'','/notes')}}}>Notes</button></nav>{view==='notes'?<Notes workspaceId={workspace.id} role={workspace.role}/>:<Workstreams workspaceId={workspace.id} role={workspace.role}/>}</main>
-  if (name && dashboard && mode !== 'reset' && !accountView) return <Dashboard data={dashboard} name={name} busy={busy} message={message}
+  const portalData=dashboard??(workspace&&workspace.role!=='owner'?{workspace,engagements:[],totals:{workstreams:0,openTasks:0}}:null)
+  if (name && workspace && portalData && mode !== 'reset' && !accountView) return <Dashboard data={portalData} role={workspace.role} name={name} busy={busy} message={message}
     view={view} workstreams={navigationWorkstreams} selectedWorkstreamId={selectedWorkstreamId} onWorkstream={id=>{if(view==='workstreams'&&selectedWorkstreamId===id)return;if(allowNavigation())selectWorkstream(id)}}
-    onNavigate={next=>{if(next===view||!allowNavigation())return;history.pushState({},'',`/${next}${next==='workstreams'&&selectedWorkstreamId?`?workstream=${encodeURIComponent(selectedWorkstreamId)}`:''}`);setView(next);setMessage('');if(next==='dashboard')refresh().catch(e=>setMessage(e.message));else if(next!=='workstreams')refreshWorkstreamNavigation(dashboard.workspace.id)}}
+    onNavigate={next=>{if(next===view||!allowNavigation())return;history.pushState({},'',`/${next}${next==='workstreams'&&selectedWorkstreamId?`?workstream=${encodeURIComponent(selectedWorkstreamId)}`:''}`);setView(next);setMessage('');if(next==='dashboard')refresh().catch(e=>setMessage(e.message));else if(next!=='workstreams')refreshWorkstreamNavigation(workspace.id)}}
     onAccount={() => { if(!allowNavigation())return;history.pushState({}, '', '/account'); setAccountView(true); setMessage('') }} onSignOut={signOut} >
-      {view==='time-settings'?<TimeSettings workspaceId={dashboard.workspace.id}/>:view==='time'?<Time workspaceId={dashboard.workspace.id}/>:view==='permissions'?<Permissions workspaceId={dashboard.workspace.id}/>:view==='workstreams'?<Workstreams workspaceId={dashboard.workspace.id} role="owner" selectedId={selectedWorkstreamId} onSelectionChange={selectWorkstream} onStreamsChange={setNavigationWorkstreams}/>:view==='notes'?<Notes workspaceId={dashboard.workspace.id} role="owner"/>:undefined}
+      {workspace.role==='owner'&&view==='time-settings'?<TimeSettings workspaceId={workspace.id}/>:workspace.role==='owner'&&view==='time'?<Time workspaceId={workspace.id}/>:workspace.role==='owner'&&view==='permissions'?<Permissions workspaceId={workspace.id}/>:view==='notes'?<Notes workspaceId={workspace.id} role={workspace.role}/>:view==='workstreams'||workspace.role!=='owner'?<Workstreams workspaceId={workspace.id} role={workspace.role} selectedId={selectedWorkstreamId} onSelectionChange={selectWorkstream} onStreamsChange={setNavigationWorkstreams}/>:undefined}
     </Dashboard>
   return <main className="foundation-page">
     <header><span className="scope-tag">Private · Central Time</span><h1>SilverAssist Advisory</h1></header>
