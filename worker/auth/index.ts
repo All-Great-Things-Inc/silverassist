@@ -14,8 +14,8 @@ export interface Env {
   AUTH_SECRET: string
   AUTH_BASE_URL: string
   APP_ENV: string
-  GOOGLE_CALENDAR_CLIENT_ID?: string
-  GOOGLE_CALENDAR_CLIENT_SECRET?: string
+  GOOGLE_CLIENT_ID?: string
+  GOOGLE_CLIENT_SECRET?: string
   TIME_TOKEN_KEY?: string
   AUTH_ALLOWED_EMAILS?: string
 }

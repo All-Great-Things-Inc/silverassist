@@ -7,7 +7,7 @@ export const scope='https://www.googleapis.com/auth/calendar.readonly'
 export const callbackPath='/api/time/calendar/callback'
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}})
 export function randomToken() {return Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('')}
-function config(env:Env) {if(!env.GOOGLE_CALENDAR_CLIENT_ID||!env.GOOGLE_CALENDAR_CLIENT_SECRET||!env.TIME_TOKEN_KEY)throw new PortalError(503,'Calendar connection is not configured. Contact your administrator.')}
+function config(env:Env) {if(!env.GOOGLE_CLIENT_ID||!env.GOOGLE_CLIENT_SECRET||!env.TIME_TOKEN_KEY)throw new PortalError(503,'Calendar connection is not configured. Contact your administrator.')}
 async function key(env:Env) {
  if(!env.TIME_TOKEN_KEY || !/^[a-f0-9]{64}$/i.test(env.TIME_TOKEN_KEY))throw new PortalError(503,'Calendar encryption is not configured.')
  return crypto.subtle.importKey('raw',Uint8Array.from(env.TIME_TOKEN_KEY.match(/../g)!,v=>parseInt(v,16)),{name:'AES-GCM'},false,['encrypt','decrypt'])
@@ -31,7 +31,7 @@ export async function google(url:string,init:RequestInit={},fetcher:typeof fetch
 }
 async function exchange(env:Env,body:Record<string,string>) {
  config(env)
- return google('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({...body,client_id:env.GOOGLE_CALENDAR_CLIENT_ID!,client_secret:env.GOOGLE_CALENDAR_CLIENT_SECRET!})})
+ return google('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({...body,client_id:env.GOOGLE_CLIENT_ID!,client_secret:env.GOOGLE_CLIENT_SECRET!})})
 }
 export async function connect(env:Env,workspaceId:string,userId:string,sessionId:string) {
  config(env);const {settings}=await readSettings(env.DB,workspaceId),state=randomToken(),verifier=randomToken()
@@ -42,7 +42,7 @@ export async function connect(env:Env,workspaceId:string,userId:string,sessionId
  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))
  const challenge=btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_')
  const url=new URL('https://accounts.google.com/o/oauth2/v2/auth')
- url.search=new URLSearchParams({client_id:env.GOOGLE_CALENDAR_CLIENT_ID!,redirect_uri:env.AUTH_BASE_URL+callbackPath,response_type:'code',scope,access_type:'offline',prompt:'consent',state,login_hint:settings.expectedEmail,code_challenge:challenge,code_challenge_method:'S256'}).toString()
+ url.search=new URLSearchParams({client_id:env.GOOGLE_CLIENT_ID!,redirect_uri:env.AUTH_BASE_URL+callbackPath,response_type:'code',scope,access_type:'offline',prompt:'consent',state,login_hint:settings.expectedEmail,code_challenge:challenge,code_challenge_method:'S256'}).toString()
  return json({url:url.toString()})
 }
 export async function callback(request:Request,env:Env,userId:string,sessionId:string) {
@@ -74,7 +74,7 @@ export async function callback(request:Request,env:Env,userId:string,sessionId:s
 }
 export async function connectionStatus(env:Env,workspaceId:string) {
  const row=await env.DB.prepare('SELECT account_email,status FROM time_connections WHERE workspace_id=?').bind(workspaceId).first()
- return {connection:row,configured:!!(env.GOOGLE_CALENDAR_CLIENT_ID&&env.GOOGLE_CALENDAR_CLIENT_SECRET&&env.TIME_TOKEN_KEY)}
+ return {connection:row,configured:!!(env.GOOGLE_CLIENT_ID&&env.GOOGLE_CLIENT_SECRET&&env.TIME_TOKEN_KEY)}
 }
 export async function disconnect(env:Env,workspaceId:string,userId:string) {
  await env.DB.batch([

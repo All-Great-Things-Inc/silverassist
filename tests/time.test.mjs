@@ -27,7 +27,7 @@ export function fixture() {
   async batch(queries){sql.exec('BEGIN');try{const r=[];for(const q of queries)r.push(await q.run());sql.exec('COMMIT');return r}catch(e){sql.exec('ROLLBACK');throw e}}
  }
 
- return {sql,env:{DB:db,AUTH_BASE_URL:'http://localhost:5173',TIME_TOKEN_KEY:'a'.repeat(64),GOOGLE_CALENDAR_CLIENT_ID:'test-client',GOOGLE_CALENDAR_CLIENT_SECRET:'synthetic-secret'}}
+ return {sql,env:{DB:db,AUTH_BASE_URL:'http://localhost:5173',TIME_TOKEN_KEY:'a'.repeat(64),GOOGLE_CLIENT_ID:'test-client',GOOGLE_CLIENT_SECRET:'synthetic-secret'}}
 }
 test('whole title words and configurable prefix; ambiguity excluded',()=>{
  assert.equal(classify('SilverAssist + Strategy',settings),'silverassist');assert.equal(classify('silverassist meeting',settings),'silverassist')

@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import type { ComponentProps, FormEvent } from 'react'
 import { passwordRules, validPassword, passwordPolicyMessage } from '../shared/password-policy'
 import { Dashboard } from './Dashboard'
+import { Time } from './Time'
 import { Permissions } from './Permissions'
 const WorkstreamsPage=lazy(()=>import('./Workstreams').then(module=>({default:module.Workstreams})))
 const NotesPage=lazy(()=>import('./Notes').then(module=>({default:module.Notes})))
@@ -81,7 +82,7 @@ export default function App() {
       if (response.ok) {
         setDashboard(await response.json())
         await refreshWorkstreamNavigation(spaces.workspaces?.[0]?.id)
-        if (!['/account', '/reset-password','/workstreams','/notes','/permissions','/accept-invitation'].includes(location.pathname)) {
+        if (!['/account', '/reset-password','/workstreams','/notes','/permissions','/time','/time-settings','/accept-invitation'].includes(location.pathname)) {
           history.replaceState({}, '', '/dashboard'); setAccountView(false);setView('dashboard')
         }
       } else if (response.status === 403) {setDashboard(null);if(spaces.workspaces?.length&&location.pathname==='/'){history.replaceState({},'','/workstreams');setView('workstreams');setAccountView(false)}}
@@ -201,7 +202,7 @@ export default function App() {
     view={view} workstreams={navigationWorkstreams} selectedWorkstreamId={selectedWorkstreamId} onWorkstream={id=>{if(view==='workstreams'&&selectedWorkstreamId===id)return;if(allowNavigation())selectWorkstream(id)}}
     onNavigate={next=>{if(next===view||!allowNavigation())return;history.pushState({},'',`/${next}${next==='workstreams'&&selectedWorkstreamId?`?workstream=${encodeURIComponent(selectedWorkstreamId)}`:''}`);setView(next);setMessage('');if(next==='dashboard')refresh().catch(e=>setMessage(e.message));else if(next!=='workstreams')refreshWorkstreamNavigation(dashboard.workspace.id)}}
     onAccount={() => { if(!allowNavigation())return;history.pushState({}, '', '/account'); setAccountView(true); setMessage('') }} onSignOut={signOut} >
-      {view==='permissions'?<Permissions workspaceId={dashboard.workspace.id}/>:view==='workstreams'?<Workstreams workspaceId={dashboard.workspace.id} role="owner" selectedId={selectedWorkstreamId} onSelectionChange={selectWorkstream} onStreamsChange={setNavigationWorkstreams}/>:view==='notes'?<Notes workspaceId={dashboard.workspace.id} role="owner"/>:undefined}
+      {view==='time'?<Time workspaceId={dashboard.workspace.id}/>:view==='permissions'?<Permissions workspaceId={dashboard.workspace.id}/>:view==='workstreams'?<Workstreams workspaceId={dashboard.workspace.id} role="owner" selectedId={selectedWorkstreamId} onSelectionChange={selectWorkstream} onStreamsChange={setNavigationWorkstreams}/>:view==='notes'?<Notes workspaceId={dashboard.workspace.id} role="owner"/>:undefined}
     </Dashboard>
   return <main className="foundation-page">
     <header><span className="scope-tag">Private · Central Time</span><h1>SilverAssist Advisory</h1></header>

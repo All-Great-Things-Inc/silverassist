@@ -130,3 +130,21 @@ legend { font-weight: 600; padding: 0 6px; }
 .decision-facts { white-space: pre-wrap; overflow-wrap: anywhere; }
 .workstream-decisions details { margin: 16px 0; }
 .workstream-decisions summary { color: var(--color-brand); cursor: pointer; font-weight: 600; }
+
+/* Time uses the canonical data primitives and semantic palette. */
+.time-page { display: grid; gap: var(--space-4); }
+.time-page h1, .time-page h2, .time-page p { margin-top: 0; }
+.time-heading, .time-actions, .time-bar-label { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+.time-rollups { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: var(--space-4); }
+.time-page .ds-data-card { padding: var(--space-5); }
+.time-bucket, .time-months { display: grid; gap: var(--space-3); }
+.time-months > div { display: grid; gap: var(--space-2); }
+.time-error { padding: var(--space-4); color: var(--color-danger); background: var(--color-danger-soft); border: 1px solid currentColor; border-radius: var(--radius-md); }
+.time-updated { color: var(--color-muted); }
+.time-page .ds-data-bar[data-over=true] > i { background: var(--color-warning); }
+.time-heatmap-scroll, .time-table-wrap { overflow-x: auto; max-width: 100%; }
+.time-heatmap { display: grid; grid-template-rows: repeat(7,18px); grid-auto-flow: column; grid-auto-columns: 18px; gap: 4px; width: max-content; padding: 4px; }
+.time-heatmap .ds-data-heatmap-cell { width: 18px; height: 18px; }
+.time-page table { border-collapse: collapse; width: 100%; text-align: left; }
+.time-page th, .time-page td { padding: 10px; border-bottom: 1px solid var(--color-line); }
+@media (max-width:700px) { .time-rollups { grid-template-columns: 1fr; } .time-heading { align-items: start; } }
