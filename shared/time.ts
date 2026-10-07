@@ -5,9 +5,9 @@ export type TimeSettings = {
  buckets: Bucket[]; blockHours: number | null; termsDays: number; terms: string;
  taxPercent: number; currency: string; billFrom: string; billTo: string; paymentInstructions: string; description: string;
  invoicePrefix: string; invoicePadding: number; nextNumber: number; filenamePattern: string;
- normalPaymentDays: number; prepaidEnabled: boolean; overlapPolicy: 'flag' | 'merge';
+ normalPaymentDays: number; overlapPolicy: 'flag' | 'merge';
  countFree: boolean; countOutOfOffice: boolean; countTentative: boolean;
- paceHigh: number; paceLow: number; cacheSeconds: number;
+ heatThresholds: number[]; paceHigh: number; paceLow: number; cacheSeconds: number;
 }
 export type CalendarEvent = { id?: string; summary?: string; status?: string; transparency?: string; eventType?: string;
  start?: { dateTime?: string; date?: string }; end?: { dateTime?: string; date?: string };
@@ -18,7 +18,7 @@ export type Hours = {
  dailyByWorkspace: Record<string, Record<string, number>>;
  byWorkspace: Record<string, { week: number; month: number; total: number; daily: Record<string, number> }>;
  generatedAt: string; today: string; weekStart: string; monthStart: string; timezone: string;
- events_count: number; unassigned_events: number; ambiguous_events: number; attention: Attention[];
+ overlapDays: string[]; events_count: number; unassigned_events: number; ambiguous_events: number; attention: Attention[];
 }
 
 export type InvoiceLine = { description: string; hours: number; rate: number; amountMinor: number; tracked: boolean }

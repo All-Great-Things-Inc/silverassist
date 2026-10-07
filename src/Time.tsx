@@ -70,7 +70,7 @@ function MonthBars({data,settings}:{data:Hours;settings:TimeSettings}) {
 function Heatmap({data,settings}:{data:Hours;settings:TimeSettings}) {
  const first=settings.buckets.map(b=>b.startDate).sort()[0],dow=new Date(first+'T12:00:00Z').getUTCDay(),start=addDays(first,-dow),cells:string[]=[]
  for(let day=start;day<=data.today;day=addDays(day,1))cells.push(day)
- const level=(h:number)=>h<=0?0:h<1?1:h<2?2:h<4?3:4
+ const level=(h:number)=>h<=0?0:h<settings.heatThresholds[0]?1:h<settings.heatThresholds[1]?2:h<settings.heatThresholds[2]?3:4
  return <div className="time-heatmap-scroll"><div className="time-heatmap" aria-label="Daily hours, Sunday through Saturday rows">{cells.map(d=>{
   const h=data.daily[d]??0,active=settings.buckets.map((b,i)=>({b,i,h:data.dailyByWorkspace[b.key]?.[d]??0})).filter(v=>v.h>0)
   const text=settings.buckets.map(b=>`${b.label} ${hoursLabel(data.dailyByWorkspace[b.key]?.[d]??0)}`).join(' · ')+` · Total ${hoursLabel(h)} · ${d}`

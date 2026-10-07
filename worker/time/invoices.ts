@@ -27,9 +27,12 @@ export async function createInvoice(env:Env,workspaceId:string,userId:string,bod
  if(body.extraItems!==undefined&&(!Array.isArray(body.extraItems)||body.extraItems.length>30))throw new PortalError(400,'Choose up to 30 additional line items.')
  // Always fetch current source data. A partial Calendar failure cannot create an invoice.
  const response=await hours(env,workspaceId,userId,true),data=await response.json() as Hours
- if(data.attention.some(a=>a.kind==='overlap'&&a.day.startsWith(month)))throw new PortalError(409,'Resolve overlapping Calendar events before invoicing this month.')
+ if(settings.overlapPolicy==='flag'&&data.overlapDays.some(d=>d.startsWith(month)))throw new PortalError(409,'Resolve overlapping Calendar events before invoicing this month.')
  const snapshot=invoiceSnapshot(data,settings,String(body.bucket),month,(body.extraItems??[]) as {description:string;hours:number;rate:number}[])
  const id=crypto.randomUUID(),number=settings.invoicePrefix+String(settings.nextNumber).padStart(settings.invoicePadding,'0'),stamp=new Date().toISOString(),next={...settings,nextNumber:settings.nextNumber+1}
+ const {invoicePdf}=await import('./pdf')
+ // Validate renderability before issuing an immutable invoice.
+ await invoicePdf({id,bucket_key:String(body.bucket),number,period_start:month+'-01',period_end:end,invoiced_on:issued,due_on:addDays(issued,settings.termsDays),paid_on:null,status:'invoiced',version:1,snapshot,created_at:stamp,updated_at:stamp})
  try {
   const results=await env.DB.batch([
    env.DB.prepare(`INSERT INTO time_settings(workspace_id,config_json,version,updated_at) SELECT ?,?,1,? WHERE ?=0 AND ${ownerGuard}

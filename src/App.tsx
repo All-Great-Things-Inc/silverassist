@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import type { ComponentProps, FormEvent } from 'react'
 import { passwordRules, validPassword, passwordPolicyMessage } from '../shared/password-policy'
 import { Dashboard } from './Dashboard'
+import { TimeSettings } from './TimeSettings'
 import { Time } from './Time'
 import { Permissions } from './Permissions'
 const WorkstreamsPage=lazy(()=>import('./Workstreams').then(module=>({default:module.Workstreams})))
@@ -202,7 +203,7 @@ export default function App() {
     view={view} workstreams={navigationWorkstreams} selectedWorkstreamId={selectedWorkstreamId} onWorkstream={id=>{if(view==='workstreams'&&selectedWorkstreamId===id)return;if(allowNavigation())selectWorkstream(id)}}
     onNavigate={next=>{if(next===view||!allowNavigation())return;history.pushState({},'',`/${next}${next==='workstreams'&&selectedWorkstreamId?`?workstream=${encodeURIComponent(selectedWorkstreamId)}`:''}`);setView(next);setMessage('');if(next==='dashboard')refresh().catch(e=>setMessage(e.message));else if(next!=='workstreams')refreshWorkstreamNavigation(dashboard.workspace.id)}}
     onAccount={() => { if(!allowNavigation())return;history.pushState({}, '', '/account'); setAccountView(true); setMessage('') }} onSignOut={signOut} >
-      {view==='time'?<Time workspaceId={dashboard.workspace.id}/>:view==='permissions'?<Permissions workspaceId={dashboard.workspace.id}/>:view==='workstreams'?<Workstreams workspaceId={dashboard.workspace.id} role="owner" selectedId={selectedWorkstreamId} onSelectionChange={selectWorkstream} onStreamsChange={setNavigationWorkstreams}/>:view==='notes'?<Notes workspaceId={dashboard.workspace.id} role="owner"/>:undefined}
+      {view==='time-settings'?<TimeSettings workspaceId={dashboard.workspace.id}/>:view==='time'?<Time workspaceId={dashboard.workspace.id}/>:view==='permissions'?<Permissions workspaceId={dashboard.workspace.id}/>:view==='workstreams'?<Workstreams workspaceId={dashboard.workspace.id} role="owner" selectedId={selectedWorkstreamId} onSelectionChange={selectWorkstream} onStreamsChange={setNavigationWorkstreams}/>:view==='notes'?<Notes workspaceId={dashboard.workspace.id} role="owner"/>:undefined}
     </Dashboard>
   return <main className="foundation-page">
     <header><span className="scope-tag">Private · Central Time</span><h1>SilverAssist Advisory</h1></header>

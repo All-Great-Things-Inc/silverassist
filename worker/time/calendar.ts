@@ -118,7 +118,7 @@ export async function hours(env:Env,workspaceId:string,userId:string,refresh=fal
  AND COALESCE((SELECT version FROM time_settings WHERE workspace_id=?),0)=? AND ${ownerGuard}
  ON CONFLICT(workspace_id) DO UPDATE SET connection_id=excluded.connection_id,settings_version=excluded.settings_version,payload_json=excluded.payload_json,expires_at=excluded.expires_at
  WHERE excluded.expires_at>time_hours_cache.expires_at`).bind(workspaceId,row.id,version,JSON.stringify(result),now+settings.cacheSeconds*1000,workspaceId,row.id,workspaceId,version,workspaceId,userId).run()
- const valid=await env.DB.prepare(`SELECT id FROM time_connections WHERE workspace_id=? AND id=? AND status='connected' AND ${ownerGuard}`).bind(workspaceId,row.id,workspaceId,userId).first()
+ const valid=await env.DB.prepare(`SELECT id FROM time_connections WHERE workspace_id=? AND id=? AND status='connected' AND ${ownerGuard} AND COALESCE((SELECT version FROM time_settings WHERE workspace_id=?),0)=?`).bind(workspaceId,row.id,workspaceId,userId,workspaceId,version).first()
  if(!valid)throw new PortalError(403,'Calendar connection or workspace access changed. Refresh.')
  return json(result)
 }

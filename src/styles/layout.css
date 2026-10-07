@@ -153,3 +153,14 @@ legend { font-weight: 600; padding: 0 6px; }
 .time-invoice-form label { display: grid; gap: var(--space-2); }
 
 .time-overdue { color: var(--color-danger); font-weight: 700; }
+
+.time-settings form, .time-settings fieldset, .time-settings-bucket { display: grid; gap: var(--space-4); min-width: 0; }
+.time-settings fieldset { border: 1px solid var(--color-line); }
+.time-settings legend { font-weight: 700; padding: 0 var(--space-2); }
+.time-settings label { display: grid; gap: var(--space-2); }
+.time-settings .time-check { display: flex; align-items: center; }
+.time-settings .time-check input { width: auto; }
+.time-history-row { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-3); margin-bottom: var(--space-3); }
+.time-history-row label { min-width: 0; flex: 1 1 160px; }
+.time-extras { width: 100%; display: grid; gap: var(--space-3); }
+.time-settings-bucket { border-bottom: 1px solid var(--color-line); padding-bottom: var(--space-5); }

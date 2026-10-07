@@ -1,3 +1,4 @@
+import { saveSettings } from './save-settings'
 import type { Env } from '../auth'
 import { PortalError, membership, owner } from '../policy'
 import { callback, connect, connectionStatus, disconnect, hours } from './calendar'
@@ -8,6 +9,7 @@ export async function timeRoutes(request:Request,env:Env,user:{id:string;emailVe
  try {
   if(!user||!user.emailVerified)throw new PortalError(401,'Sign in required.')
   const url=new URL(request.url)
+  if(url.pathname==='/api/time/calendar/callback'&&request.method!=='GET')throw new PortalError(405,'Method not allowed.')
   if(url.pathname==='/api/time/calendar/callback')return await callback(request,env,user.id,sessionId)
   const parts=url.pathname.split('/').filter(Boolean),workspaceId=parts[2],section=parts[4]
   const member=await membership(env.DB,workspaceId,user.id);owner(member)
@@ -21,12 +23,19 @@ export async function timeRoutes(request:Request,env:Env,user:{id:string;emailVe
   }
   if(section==='invoices') {
    const id=parts[5]
+   if(id&&parts[6]==='pdf'&&parts.length===7&&request.method==='GET') {
+    const invoice=await getInvoice(env,workspaceId,id),{invoicePdf,invoiceFilename}=await import('./pdf')
+    const bytes=await invoicePdf(invoice)
+    return new Response(bytes as BodyInit,{headers:{'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="${invoiceFilename(invoice)}"`,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}})
+   }
+   if(parts.length>6)throw new PortalError(404,'Not found.')
    if(request.method==='GET')return timeJson(id?{invoice:await getInvoice(env,workspaceId,id)}:{invoices:await listInvoices(env,workspaceId)})
    if(request.method==='POST'&&!id)return timeJson({invoice:await createInvoice(env,workspaceId,user.id,await body())},201)
    if(request.method==='PATCH'&&id)return timeJson({invoice:await updateInvoice(env,workspaceId,user.id,id,await body())})
    if(request.method==='DELETE'&&id)return timeJson({invoice:await updateInvoice(env,workspaceId,user.id,id,await body(),true)})
    throw new PortalError(405,'Method not allowed.')
   }
+  if(section==='settings'&&request.method==='PATCH')return timeJson(await saveSettings(env,workspaceId,user.id,await body()))
   if(section==='settings' &&request.method==='GET')return timeJson(await readSettings(env.DB,workspaceId))
   if(section==='calendar'&&request.method==='GET')return timeJson(await connectionStatus(env,workspaceId))
   if(section==='connect'&&request.method==='POST')return await connect(env,workspaceId,user.id,sessionId)

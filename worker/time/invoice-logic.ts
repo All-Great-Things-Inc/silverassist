@@ -13,7 +13,7 @@ export function invoiceSnapshot(data:Hours,settings:TimeSettings,bucketKey:strin
  const hours=Object.values(daily).reduce((s,h)=>s+h,0),subtotalMinor=lines.reduce((s,l)=>s+l.amountMinor,0),taxMinor=Math.round(subtotalMinor*settings.taxPercent/100)
  if(!Number.isSafeInteger(subtotalMinor+taxMinor))throw new PortalError(400,'Invoice total is too large.')
  if(hours<=0)throw new PortalError(400,'No tracked hours in this month.')
- return {billFrom:settings.billFrom,billTo:settings.billTo,terms:settings.terms,termsDays:settings.termsDays,paymentInstructions:settings.paymentInstructions,currency:settings.currency,minorDigits,timezone:settings.timezone,description:settings.description,clientLabel:bucket.label,filenamePattern:settings.filenamePattern,lines,daily,subtotalMinor,taxPercent:settings.taxPercent,taxMinor,totalMinor:subtotalMinor+taxMinor,hours,sourceGeneratedAt:data.generatedAt}
+ return {billFrom:settings.billFrom,billTo:settings.billTo,terms:settings.terms.replaceAll('{termsDays}',String(settings.termsDays)),termsDays:settings.termsDays,paymentInstructions:settings.paymentInstructions,currency:settings.currency,minorDigits,timezone:settings.timezone,description:settings.description,clientLabel:bucket.label,filenamePattern:settings.filenamePattern,lines,daily,subtotalMinor,taxPercent:settings.taxPercent,taxMinor,totalMinor:subtotalMinor+taxMinor,hours,sourceGeneratedAt:data.generatedAt}
 }
 export function ledger(invoices:Invoice[]) {
  const totals:Record<string,{invoiced:number;paid:number;outstanding:number}>={}

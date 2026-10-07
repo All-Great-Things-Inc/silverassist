@@ -4,7 +4,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { readFileSync, readdirSync } from 'node:fs'
 import { initialSettings, validateSettings } from '../.local/time-tests/worker/time/settings.js'
 import { classify, splitDays, calculate, pace, block } from '../.local/time-tests/worker/time/logic.js'
-import { encrypt, decrypt, fetchEvents, connect, callback } from '../.local/time-tests/worker/time/calendar.js'
+import { encrypt, decrypt, fetchEvents, connect, callback, disconnect } from '../.local/time-tests/worker/time/calendar.js'
 import { invoiceSnapshot, ledger } from '../.local/time-tests/worker/time/invoice-logic.js'
 import { timeRoutes } from '../.local/time-tests/worker/time/routes.js'
 const settings=structuredClone(initialSettings), epoch=s=>Date.parse(s)
@@ -99,7 +99,7 @@ test('provider failure returns 502/no-store and never writes a zero cache; succe
 test('monthly invoice totals, immutable snapshots, numbering, paid/void ledger and audit',async()=>{
  const {env,sql}=fixture(),original=globalThis.fetch
  const s=structuredClone(settings);s.billFrom='Test Advisor';s.billTo='Test Client';s.buckets[0].startDate='2026-09-01';s.buckets[0].rates[0].from='2026-09-01';s.buckets[0].caps[0].from='2026-09-01'
- sql.prepare('INSERT INTO time_settings VALUES (?,?,1,?)').run('ws',JSON.stringify(s),'now')
+ sql.prepare('INSERT INTO time_settings(workspace_id,config_json,version,updated_at) VALUES (?,?,1,?)').run('ws',JSON.stringify(s),'now')
  sql.prepare("INSERT INTO time_connections VALUES ('ws','connection','owner','owner@example.test',?,'connected','now')").run(await encrypt('synthetic-refresh',env,'ws:owner'))
  const call=async(path,method='GET',body)=>timeRoutes(new Request(env.AUTH_BASE_URL+'/api/workspaces/ws/time/'+path,{method,headers:{Origin:env.AUTH_BASE_URL,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)}),env,{id:'owner',emailVerified:true},'session')
  try {
@@ -126,4 +126,40 @@ test('invoice totals aggregate time before rounding, preserve rate history and s
  const snapshot=invoiceSnapshot(data,s,'silverassist','2026-10',[{description:'Additional service',hours:0.25,rate:100}])
  assert.equal(snapshot.hours,1.5);assert.equal(snapshot.subtotalMinor,57500);assert.equal(snapshot.taxMinor,5750);assert.equal(snapshot.totalMinor,63250);assert.equal(snapshot.lines.at(-1).tracked,false)
  assert.deepEqual(ledger([{status:'invoiced',snapshot},{status:'paid',snapshot},{status:'void',snapshot}]),{USD:{invoiced:1265,paid:632.5,outstanding:632.5}})
+})
+
+test('settings edits are validated, versioned, audited and invalidate cached hours',async()=>{
+ const {env,sql}=fixture(),s=structuredClone(settings)
+ s.billFrom='Synthetic Advisor';s.billTo='Synthetic Client'
+ const call=async(body)=>timeRoutes(new Request(env.AUTH_BASE_URL+'/api/workspaces/ws/time/settings',{method:'PATCH',headers:{Origin:env.AUTH_BASE_URL,'Content-Type':'application/json'},body:JSON.stringify(body)}),env,{id:'owner',emailVerified:true},'session')
+ let r=await call({settings:s,version:0});assert.equal(r.status,200);assert.equal((await r.json()).version,1)
+ assert.equal(sql.prepare("SELECT count(*) AS n FROM activity_events WHERE action='time.settings.updated'").get().n,1)
+ r=await call({settings:s,version:0});assert.equal(r.status,409)
+ s.timezone='invalid/timezone';r=await call({settings:s,version:1});assert.equal(r.status,400)
+})
+test('PDF is generated from frozen snapshot, handles multipage content, and is admin-gated',async()=>{
+ const {invoicePdf}=await import('../.local/time-tests/worker/time/pdf.js'),{PDFDocument}=await import('pdf-lib'),{mkdir,writeFile}=await import('node:fs/promises')
+ const s=structuredClone(settings);s.billFrom='Synthetic Advisor\n100 Test Street';s.billTo='Synthetic Client\n200 Example Avenue'
+ const snapshot=invoiceSnapshot({dailyByWorkspace:{silverassist:{'2026-10-05':2.5}},generatedAt:'2026-10-07T17:00:00Z'},s,'silverassist','2026-10')
+ const invoice={id:'test',number:'INV-001',snapshot,period_start:'2026-10-01',period_end:'2026-11-01',invoiced_on:'2026-11-01',due_on:'2026-12-01',status:'invoiced',created_at:'2026-11-01T12:00:00Z',updated_at:'2026-11-01T12:00:00Z'}
+ const bytes=await invoicePdf(invoice);assert.equal((await PDFDocument.load(bytes)).getPageCount(),1)
+ await mkdir('.local/time-pdf',{recursive:true});await writeFile('.local/time-pdf/sample.pdf',bytes)
+ const long=structuredClone(invoice);long.snapshot.lines=Array.from({length:40},()=>({...snapshot.lines[0],description:'A long service description that wraps cleanly across the invoice table and retains monetary values.'}))
+ const longBytes=await invoicePdf(long);assert.ok((await PDFDocument.load(longBytes)).getPageCount()>1);await writeFile('.local/time-pdf/overflow.pdf',longBytes)
+})
+
+test('OAuth success keeps tokens server-side, wrong account fails and disconnect removes credentials',async()=>{
+ const {env,sql}=fixture(),original=globalThis.fetch
+ try {
+  globalThis.fetch=async(url)=>String(url).includes('/token')?Response.json({scope:'https://www.googleapis.com/auth/calendar.readonly',access_token:'synthetic-access-marker',refresh_token:'synthetic-refresh-marker'}):Response.json({id:settings.expectedEmail})
+  const begin=await connect(env,'ws','owner','session'),state=new URL((await begin.json()).url).searchParams.get('state')
+  const r=await callback(new Request(env.AUTH_BASE_URL+'/api/time/calendar/callback?code=synthetic-code&state='+state),env,'owner','session');assert.equal(r.status,303)
+  assert.ok(!r.headers.get('Location').includes('synthetic-'));assert.equal(await r.text(),'')
+  const c=sql.prepare('SELECT token_cipher FROM time_connections').get().token_cipher;assert.ok(!c.includes('synthetic-refresh-marker'))
+  assert.equal(await decrypt(c,env,'ws:owner'),'synthetic-refresh-marker')
+  await disconnect(env,'ws','owner');assert.equal(sql.prepare('SELECT count(*) AS n FROM time_connections').get().n,0)
+  const begin2=await connect(env,'ws','owner','session'),state2=new URL((await begin2.json()).url).searchParams.get('state')
+  globalThis.fetch=async(url)=>String(url).includes('/token')?Response.json({scope:'https://www.googleapis.com/auth/calendar.readonly',access_token:'a',refresh_token:'r'}):Response.json({id:'wrong@example.test'})
+  await assert.rejects(callback(new Request(env.AUTH_BASE_URL+'/api/time/calendar/callback?code=synthetic-code&state='+state2),env,'owner','session'),e=>e.status===403)
+ }finally{globalThis.fetch=original}
 })

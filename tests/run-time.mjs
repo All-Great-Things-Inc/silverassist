@@ -10,6 +10,7 @@ async function compile(dir) {
   else if(path.endsWith('.ts')) {
    const target=out+'/'+path.replace(/\.ts$/,'.js');await mkdir(dirname(target),{recursive:true})
    let code=ts.transpileModule(await readFile(path,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2023,module:ts.ModuleKind.ESNext}}).outputText
+   code=code.replace(/(import\(['"])(\.[^'"]+)(['"]\))/g,'$1$2.js$3')
    code=code.replace(/(from\s+['"])(\.[^'"]+)(['"])/g,'$1$2.js$3');await writeFile(target,code)
   }
  }
