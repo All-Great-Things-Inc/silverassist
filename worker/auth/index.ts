@@ -84,15 +84,22 @@ export function createAuth(env: Env, request: Request, ctx: ExecutionContext) {
         },
         after: async user => {
           if (env.APP_ENV === 'local') return
-          const existing = await env.DB.prepare('SELECT id FROM workspaces LIMIT 1').first()
-          if (existing) return
-          const workspaceId = crypto.randomUUID()
-          await env.DB.batch([
-            env.DB.prepare('INSERT INTO workspaces (id, slug, name, is_demo) VALUES (?, ?, ?, 0)')
-              .bind(workspaceId, 'silverassist', 'SilverAssist Advisory'),
-            env.DB.prepare(`INSERT INTO memberships (id, workspace_id, user_id, role, status) VALUES (?, ?, ?, 'owner', 'active')`)
-              .bind(crypto.randomUUID(), workspaceId, user.id),
-          ])
+          const existing = await env.DB.prepare('SELECT id FROM workspaces LIMIT 1').first<{ id: string }>()
+          if (!existing) {
+            const workspaceId = crypto.randomUUID()
+            await env.DB.batch([
+              env.DB.prepare('INSERT INTO workspaces (id, slug, name, is_demo) VALUES (?, ?, ?, 0)')
+                .bind(workspaceId, 'silverassist', 'SilverAssist Advisory'),
+              env.DB.prepare(`INSERT INTO memberships (id, workspace_id, user_id, role, status) VALUES (?, ?, ?, 'owner', 'active')`)
+                .bind(crypto.randomUUID(), workspaceId, user.id),
+            ])
+            return
+          }
+          const membership = await env.DB.prepare('SELECT role FROM memberships WHERE workspace_id = ? AND user_id = ?')
+            .bind(existing.id, user.id).first<{ role: string }>()
+          if (membership) return
+          await env.DB.prepare(`INSERT INTO memberships (id, workspace_id, user_id, role, status) VALUES (?, ?, ?, 'viewer', 'active')`)
+            .bind(crypto.randomUUID(), existing.id, user.id)
         },
       } },
       session: { create: { before: async session => {

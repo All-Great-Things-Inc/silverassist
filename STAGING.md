@@ -25,7 +25,7 @@ Jason connects the existing Worker to this repository's `main` branch through Wo
 - Set `AUTH_ALLOWED_EMAILS` as a runtime secret containing the exact approved account email addresses. Missing/empty configuration denies access. Runtime secrets are separate from Workers Builds variables.
 - Numbered SQL files in `migrations/` provide schema only. Install/build does not apply migrations remotely or insert any rows.
 - There is no hosted mail provider. Hosted sign-up marks an allowlisted address verified and does not send mail. Password reset and invitation delivery still require a mail provider.
-- The first hosted account, and only that account, becomes owner of an empty SilverAssist Advisory workspace. Later accounts are not given ownership. No saved local content is copied.
+- The first hosted account, and only that account, becomes owner of the SilverAssist Advisory workspace. Every later hosted account joins that workspace as a viewer. No saved local content is copied.
 - Private/shared role behavior and the staging runtime still require live verification after Jason connects Builds. Source/build checks do not constitute a live acceptance test.
 
 `silverassist.allgreatthings.app` is the attached hostname. The `silverassist-staging` hostname is removed. The production Worker and production database remain unused. Do not order a certificate and do not reattach the staging hostname.
