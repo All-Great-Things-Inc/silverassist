@@ -6,19 +6,20 @@ export type DashboardData = {
   engagements: { id: string; title: string; timezone: string; start_date: string | null }[]
   totals: { workstreams: number; openTasks: number }
 }
-export function Dashboard({ data, name, busy, message, onAccount, onSignOut, view = 'dashboard', onNavigate, children, workstreams = [], selectedWorkstreamId, onWorkstream }: {
-  data: DashboardData; name: string; busy: boolean; message: string
+export function Dashboard({ data, name, busy, message, onAccount, onSignOut, view = 'dashboard', onNavigate, children, workstreams = [], selectedWorkstreamId, onWorkstream, role = 'owner' }: {
+  data: DashboardData; name: string; busy: boolean; message: string; role?: string
   onAccount: () => void; onSignOut: () => void
   view?: string; onNavigate?: (view: string) => void; children?: ReactNode
   workstreams?: NavigationWorkstream[]; selectedWorkstreamId?: string | null; onWorkstream?: (id: string) => void
 }) {
+  const owner = role === 'owner'
   const [workstreamsOpen,setWorkstreamsOpen] = useState(true)
   return <div className="app-shell">
     <aside className="sidebar" aria-label="Workspace navigation">
       <div className="brand"><span className="brand-mark" aria-hidden="true">SA</span><strong>SilverAssist<br />Advisory</strong></div>
       <p className="workspace-label">{data.workspace.name}</p>
       <nav className="nav-list" aria-label="Main navigation">
-        <a className={`nav-item ${view==='dashboard'?'active':''}`} href="/dashboard" aria-current={view==='dashboard'?'page':undefined} onClick={e=>{if(onNavigate){e.preventDefault();onNavigate('dashboard')}}}>Dashboard</a>
+        {owner&&<a className={`nav-item ${view==='dashboard'?'active':''}`} href="/dashboard" aria-current={view==='dashboard'?'page':undefined} onClick={e=>{if(onNavigate){e.preventDefault();onNavigate('dashboard')}}}>Dashboard</a>}
         <div className="nav-workstream-group">
           <div className={`nav-workstream-row ${view==='workstreams'?'active':''}`}>
             <button className="nav-item" aria-current={view==='workstreams'&&!selectedWorkstreamId?'page':undefined} onClick={()=>{setWorkstreamsOpen(true);onNavigate?.('workstreams')}}>Workstreams</button>
@@ -31,14 +32,14 @@ export function Dashboard({ data, name, busy, message, onAccount, onSignOut, vie
             {!workstreams.length&&<li className="nav-empty">No workstreams in this view.</li>}
           </ul>
         </div>
-        {['notes','time','time-settings','permissions'].map(item=><button key={item} className={`nav-item ${view===item?'active':''}`} aria-current={view===item?'page':undefined} onClick={()=>onNavigate?.(item)}>{item==='notes'?'Notes':item==='time'?'Time':item==='time-settings'?'Time settings':'Workspace access'}</button>)}
+        {(owner?['notes','time','time-settings','permissions']:['notes']).map(item=><button key={item} className={`nav-item ${view===item?'active':''}`} aria-current={view===item?'page':undefined} onClick={()=>onNavigate?.(item)}>{item==='notes'?'Notes':item==='time'?'Time':item==='time-settings'?'Time settings':'Workspace access'}</button>)}
         <button className="nav-item" onClick={onAccount}>Your account</button>
       </nav>
-      <div className="sidebar-footer"><span className="scope-tag">Private workspace</span><p>Signed in as <strong>{name}</strong></p>
+      <div className="sidebar-footer"><span className="scope-tag">{owner?'Private workspace':'Shared workspace'}</span><p>Signed in as <strong>{name}</strong></p>
         <button className="outline-button" disabled={busy} onClick={onSignOut}>Sign out</button></div>
     </aside>
     <main className="main-content">
-      <header className="topbar"><span className="eyebrow">Your engagement</span><span className="scope-tag">Private · Central Time</span></header>
+      <header className="topbar"><span className="eyebrow">Your engagement</span><span className="scope-tag">{owner?'Private · Central Time':'Shared workspace'}</span></header>
       <div className="dashboard-page">{children??<>
         <h1>Dashboard</h1><p className="lede">Welcome, {name.split(' ')[0]}. Your SilverAssist workspace is ready.</p>
         <div className="dashboard-metrics">
