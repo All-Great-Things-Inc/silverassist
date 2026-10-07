@@ -7,11 +7,12 @@
     "dev": "vite --host localhost --port 5173 --strictPort",
     "build": "npm run typecheck && vite build",
     "typecheck": "tsc -b",
-    "check": "npm run build && node scripts/check-staging.mjs",
+    "check": "npm run build && node scripts/check-staging.mjs && npm run test:time",
     "setup:local": "node scripts/setup-local.mjs",
     "db:migrate:local": "node scripts/migrate-local.mjs",
     "auth:generate": "auth generate --config scripts/auth-schema.config.ts --output worker/db/auth-schema.ts --yes",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "test:time": "node tests/run-time.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",

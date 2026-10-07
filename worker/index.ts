@@ -1,3 +1,4 @@
+import { timeRoutes } from './time/routes'
 import { createAuth, isLocalSpike } from './auth'
 import type { Env } from './auth'
 import { ownerDashboard } from './db/dashboard'
@@ -22,6 +23,9 @@ export default {
       path !== '/api/auth/sign-out') {
       if (path === '/api/auth/get-session') return json(null)
       return json({ error: accessDeniedMessage, message: accessDeniedMessage }, 403)
+    }
+    if (path === '/api/time/calendar/callback' || /^\/api\/workspaces\/[^/]+\/time(?:\/|$)/.test(path)) {
+      return timeRoutes(request, env, currentSession?.user ?? null, currentSession?.session.id ?? '')
     }
     if (path.startsWith('/api/auth/')) {
       const response = await auth.handler(request)
