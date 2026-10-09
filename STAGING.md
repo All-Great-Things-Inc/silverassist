@@ -2,6 +2,8 @@
 
 Repository: `All-Great-Things-Inc/silverassist`, branch `main`, root directory `/`.
 
+On October 6, 2026, the owner confirmed that GitHub is connected to Cloudflare Workers Builds and requested the first build. Merging this documentation update to `main` triggers the connected staging pipeline. It changes no application code, resource binding, data, or runtime secret. Build/deployment success must be verified separately; this note does not claim hosted accounts or migrated data are ready.
+
 | Setting | Value |
 | --- | --- |
 | Existing Worker | `silverassist-advisory-staging` |
